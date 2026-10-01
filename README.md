@@ -5,8 +5,14 @@ A Laravel web application for managing requests, using MySQL as its database.
 Developed as Laboratory 1 for DevOps.
 
 ## Student Information
+
 - *Name:* Firstname Lastname
 - *Course, Year & Section:* BSIT 3-A (use your own)
+
+- Name: Gasid, Ralph James G
+        Guatno James Phillip
+- Course: BSIT 4 - 3
+
 
 ## Software Requirements
 - PHP 8.2 or newer
@@ -44,6 +50,7 @@ Then open http://127.0.0.1:8000
 ## GitHub Repository
 https://github.com/Jamess101/Guatno_Gasid_Lab1-2.git
 
+ 
 
 ## Request Data Model (Laboratory 2)
 
@@ -73,3 +80,4 @@ https://github.com/Jamess101/Guatno_Gasid_Lab1-2.git
 1. As a requester, I want to submit my name, email, item, quantity, and purpose so that staff know what I need.
 2. As a staff reviewer, I want each request to show a status so that I can tell which ones still need review.
 3. As a record keeper, I want a unique request number and timestamps on each request so that I can audit records.
+
