@@ -78,6 +78,45 @@ https://github.com/Jamess101/Guatno_Gasid_Lab1-2.git
 2. As a staff reviewer, I want each request to show a status so that I can tell which ones still need review.
 3. As a record keeper, I want a unique request number and timestamps on each request so that I can audit records.
 
-## Laboratory 3 Verification
 
-Verification instruction: Test administrator access and administrator-only status updates.
+
+## Laboratory 3: Secure Request Access
+
+### Ownership and access rules
+- Guests are redirected to the login page.
+- Students list and view only their own requests. Ownership is decided by `user_id`, never by name or email.
+- Authenticated students may create requests. The initial status is always `pending`.
+- Only administrators may list all requests and update status.
+- **Denied access returns HTTP 403** for another student's record. This response is applied consistently through `Gate::authorize`.
+
+### Route summary
+| Method | Route | Access |
+|---|---|---|
+| GET | /login, POST /login | Guests |
+| POST | /logout | Signed-in users |
+| GET | /requests | Signed-in; students see only their own, admin sees all |
+| GET | /requests/create | Students |
+| POST | /requests | Students |
+| GET | /requests/{id} | Owner or administrator |
+| PATCH | /requests/{id}/status | Administrator only |
+
+### Setup and migration steps
+1. `composer install`
+2. Copy `.env.example` to `.env`, then `php artisan key:generate`
+3. Create the MySQL database `laravel_request_system_db` and set the DB values in `.env`
+4. `php artisan migrate`
+5. `php artisan db:seed --class=Lab3Seeder` (creates fictional admin, Student A and Student B)
+6. `php artisan serve`
+
+### File responsibilities
+- Policy (`app/Policies/ServiceRequestPolicy.php`): FULL NAME 1
+- Controller (`app/Http/Controllers/ServiceRequestController.php`): FULL NAME 1
+- Routes (`routes/web.php`): FULL NAME 1
+- Views (`resources/views/requests/`): FULL NAME 2
+- Tests and test matrix: FULL NAME 2
+
+### Testing steps
+Use separate browser sessions for Student A, Student B, the administrator and a guest. Run tests T01 to T10 from the Laboratory 3 matrix and compare database values before and after each write attempt.
+
+### Dependency audit and exposed secrets
+`composer audit` was run and its result is recorded in the Laboratory 3 report. An exposed secret must be revoked or rotated, removed from the code, and the repository history addressed. Deleting the file alone is not enough.
