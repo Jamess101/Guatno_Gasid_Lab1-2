@@ -80,4 +80,4 @@ https://github.com/Jamess101/Guatno_Gasid_Lab1-2.git
 
 ## Laboratory 3 Verification
 
-Verification instruction: Follow the required access checks.
+Verification instruction: Test administrator access and administrator-only status updates.
