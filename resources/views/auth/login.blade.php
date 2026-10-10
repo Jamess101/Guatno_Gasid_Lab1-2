@@ -1,16 +1,24 @@
 @extends('layouts.app')
-@section('title', 'Login')
+@section('title', 'Sign in')
 
 @section('content')
-<div class="max-w-sm mx-auto bg-white rounded-xl shadow p-6">
-    <h1 class="text-xl font-bold mb-4">Sign in</h1>
-    <form method="POST" action="{{ url('/login') }}" class="space-y-3">
-        @csrf
-        <input type="email" name="email" value="{{ old('email') }}" placeholder="Email"
-               class="w-full border rounded-lg px-3 py-2 text-sm">
-        <input type="password" name="password" placeholder="Password"
-               class="w-full border rounded-lg px-3 py-2 text-sm">
-        <button class="w-full bg-indigo-600 text-white rounded-lg py-2 text-sm">Login</button>
-    </form>
+<div style="max-width: 420px; margin: 24px auto 0;">
+    <div class="panel">
+        <h1 style="font-size: 2.1rem; margin-bottom: 6px;">Sign in</h1>
+        <p class="muted" style="margin: 0 0 28px;">Use your account to view or submit requests.</p>
+
+        <form method="POST" action="{{ url('/login') }}">
+            @csrf
+            <div class="field">
+                <label for="email">Email</label>
+                <input id="email" type="email" name="email" value="{{ old('email') }}" autocomplete="username" autofocus>
+            </div>
+            <div class="field">
+                <label for="password">Password</label>
+                <input id="password" type="password" name="password" autocomplete="current-password">
+            </div>
+            <button type="submit" class="btn" style="width: 100%;">Sign in</button>
+        </form>
+    </div>
 </div>
 @endsection
