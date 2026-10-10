@@ -6,9 +6,6 @@ Developed as Laboratory 1 for DevOps.
 
 ## Student Information
 
-- *Name:* Firstname Lastname
-- *Course, Year & Section:* BSIT 3-A (use your own)
-
 - Name: Gasid, Ralph James G
         Guatno James Phillip
 - Course: BSIT 4 - 3
@@ -54,7 +51,7 @@ https://github.com/Jamess101/Guatno_Gasid_Lab1-2.git
 
 ## Request Data Model (Laboratory 2)
 
-**Database name:** your_database_name
+**Database name:** laravel_request_system_db
 
 ### `requests` table fields
 | Field | Type | Constraint | Purpose |
@@ -81,3 +78,6 @@ https://github.com/Jamess101/Guatno_Gasid_Lab1-2.git
 2. As a staff reviewer, I want each request to show a status so that I can tell which ones still need review.
 3. As a record keeper, I want a unique request number and timestamps on each request so that I can audit records.
 
+## Laboratory 3 Verification
+
+Verification instruction: Follow the required access checks.
