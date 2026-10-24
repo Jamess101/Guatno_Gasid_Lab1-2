@@ -120,3 +120,8 @@ Use separate browser sessions for Student A, Student B, the administrator and a 
 
 ### Dependency audit and exposed secrets
 `composer audit` was run and its result is recorded in the Laboratory 3 report. An exposed secret must be revoked or rotated, removed from the code, and the repository history addressed. Deleting the file alone is not enough.
+
+
+##Laboratory 4 : Docker
+
+

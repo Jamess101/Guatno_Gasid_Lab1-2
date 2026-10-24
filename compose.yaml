@@ -1,0 +1,44 @@
+services:
+  web:
+    build: { context: ., target: web }
+    ports:
+      - "127.0.0.1:${WEB_PORT:-8080}:80"
+    depends_on:
+      app: { condition: service_healthy }
+    networks: [appnet]
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build: { context: ., target: app }
+    env_file: .env.container
+    depends_on:
+      db: { condition: service_healthy }
+    networks: [appnet]
+    healthcheck:
+      test: ["CMD-SHELL", "php-fpm -t >/dev/null 2>&1 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  db:
+    image: mysql:8.4
+    env_file: .env.container
+    volumes:
+      - db_data:/var/lib/mysql
+    networks: [appnet]
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p\"$$MYSQL_ROOT_PASSWORD\" --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+networks:
+  appnet:
+
+volumes:
+  db_data:
