@@ -1,0 +1,92 @@
+# Place this file at:  .github/workflows/deploy-staging.yml   (in your Laravel repository)
+name: Deploy to staging
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Git tag to release, e.g. v1.4.0"
+        required: true
+
+jobs:
+  build:
+    runs-on: [self-hosted, windows]
+    outputs:
+      sha256: ${{ steps.pack.outputs.sha256 }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.version }}
+
+      - name: Package artifact
+        id: pack
+        shell: powershell
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          $ErrorActionPreference = "Stop"
+          if ($env:VERSION -notmatch '^v\d+\.\d+\.\d+(-[A-Za-z0-9-]+)?$') { throw "Bad version format" }
+          $store = "C:\staging\artifacts"
+          $zip = Join-Path $store "$($env:VERSION).zip"
+          $hashFile = "$zip.sha256"
+          if (-not (Test-Path $zip)) {
+            composer install --no-dev --optimize-autoloader --no-interaction
+            if ($LASTEXITCODE -ne 0) { throw "composer install failed" }
+            $items = Get-ChildItem -Force -Name | Where-Object { $_ -notin '.git','.github','.env','node_modules' }
+            & "C:\Windows\System32\tar.exe" -a -c -f $zip $items
+            if ($LASTEXITCODE -ne 0) { throw "packaging failed" }
+            (Get-FileHash $zip -Algorithm SHA256).Hash.ToLower() | Set-Content $hashFile -Encoding ascii
+            $note = "Built a NEW artifact"
+          } else {
+            $note = "REUSED the stored artifact (build once, deploy many)"
+          }
+          $hash = (Get-FileHash $zip -Algorithm SHA256).Hash.ToLower()
+          if ($hash -ne (Get-Content $hashFile).Trim()) { throw "Stored artifact does not match its recorded checksum" }
+          Add-Content $env:GITHUB_OUTPUT "sha256=$hash" -Encoding ascii
+          Add-Content $env:GITHUB_STEP_SUMMARY "### Release candidate`n- Version: $($env:VERSION)`n- Commit: $($env:GITHUB_SHA)`n- SHA-256: $hash`n- $note" -Encoding ascii
+
+  deploy:
+    needs: build
+    runs-on: [self-hosted, windows]
+    environment: staging
+    steps:
+      - name: Deploy the approved artifact
+        shell: powershell
+        env:
+          VERSION: ${{ inputs.version }}
+          EXPECTED_SHA: ${{ needs.build.outputs.sha256 }}
+        run: |
+          $ErrorActionPreference = "Stop"
+          $zip = "C:\staging\artifacts\$($env:VERSION).zip"
+          $hash = (Get-FileHash $zip -Algorithm SHA256).Hash.ToLower()
+          if ($hash -ne $env:EXPECTED_SHA) { throw "Artifact differs from the approved one. Aborting." }
+          Write-Host "Artifact checksum matches the approved value: $hash"
+
+          $rel = "C:\staging\releases\$($env:VERSION)"
+          if (Test-Path $rel) { Remove-Item $rel -Recurse -Force }
+          New-Item -ItemType Directory -Force -Path $rel | Out-Null
+          & "C:\Windows\System32\tar.exe" -x -f $zip -C $rel
+          if ($LASTEXITCODE -ne 0) { throw "extract failed" }
+          Copy-Item "C:\staging\shared\.env" "$rel\.env"
+
+          @{ version = $env:VERSION; sha256 = $hash; deployed_at = (Get-Date -Format o) } |
+            ConvertTo-Json | Set-Content "$rel\public\release.json" -Encoding ascii
+
+          Push-Location $rel
+          php artisan --version
+          Write-Host "--- migrate:status (information only; no migration is run here) ---"
+          php artisan migrate:status
+          Pop-Location
+          $global:LASTEXITCODE = 0
+
+          $live = "C:\laragon\www\staging"
+          if (Test-Path $live) { cmd /c rmdir "`"$live`"" }
+          New-Item -ItemType Junction -Path $live -Target $rel | Out-Null
+
+          Start-Sleep -Seconds 3
+          $base = "http://staging.test"
+          $up = Invoke-WebRequest "$base/up" -UseBasicParsing
+          if ($up.StatusCode -ne 200) { throw "Health check failed" }
+          $rj = Invoke-RestMethod "$base/release.json"
+          if ($rj.version -ne $env:VERSION -or $rj.sha256 -ne $hash) { throw "Running revision does not match the approved artifact" }
+          Write-Host "HEALTH OK. Running $($rj.version) sha256 $($rj.sha256)"
