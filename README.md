@@ -109,11 +109,11 @@ https://github.com/Jamess101/Guatno_Gasid_Lab1-2.git
 6. `php artisan serve`
 
 ### File responsibilities
-- Policy (`app/Policies/ServiceRequestPolicy.php`): FULL NAME 1
-- Controller (`app/Http/Controllers/ServiceRequestController.php`): FULL NAME 1
-- Routes (`routes/web.php`): FULL NAME 1
-- Views (`resources/views/requests/`): FULL NAME 2
-- Tests and test matrix: FULL NAME 2
+- Policy (`app/Policies/ServiceRequestPolicy.php`): GASID, Ralph James
+- Controller (`app/Http/Controllers/ServiceRequestController.php`): GUATNO, James Phillip
+- Routes (`routes/web.php`): GASID, Ralph James 
+- Views (`resources/views/requests/`): GUATNO, James Phillip
+- Tests and test matrix: GASID, Ralph James 
 
 ### Testing steps
 Use separate browser sessions for Student A, Student B, the administrator and a guest. Run tests T01 to T10 from the Laboratory 3 matrix and compare database values before and after each write attempt.
@@ -123,5 +123,23 @@ Use separate browser sessions for Student A, Student B, the administrator and a 
 
 
 ##Laboratory 4 : Docker
+
+
+
+##Lab 8-9 Staging
+
+## Release process (staging)
+
+Staging runs on the developer machine (Laragon: Apache + MySQL, http://staging.test). Promotion is a scripted manual step with a recorded approval.
+
+1. Tag a version: `git tag -a vX.Y.Z -m "message"`.
+2. Build: `build.ps1 -Version vX.Y.Z` packages the tag into a zip and records its SHA-256. An existing package is reused.
+3. Approve: `approve.ps1 -Version vX.Y.Z` recomputes the checksum and records the approver, timestamp and comment. Deployment is refused without it.
+4. Deploy: `deploy.ps1 -Version vX.Y.Z` verifies the approved checksum, extracts the release, copies the staging environment file, prints `php artisan migrate:status`, switches the live folder, and runs the health check.
+5. Schema changes are never run automatically. Confirm a recovery point first, then run `php artisan migrate --force` manually.
+6. Verify with five smoke tests: health and revision, student login, request creation, administrator status update, student restriction.
+7. Recovery: deploy the previous known-good version again (same approval gate). Code rolls back; the database is unchanged.
+
+Last recovery result: v1.4.0 was deployed and passed all smoke tests, v1.4.1-lab-fault failed the request-creation test with a 503, v1.4.0 was restored with the identical checksum, all smoke tests passed, and request 1 (STAGE-LIB-08) was still present.
 
 
